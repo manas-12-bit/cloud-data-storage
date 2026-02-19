@@ -48,12 +48,14 @@ def register():
 
 @app.route("/dashboard/<username>")
 def dashboard(username):
-    user_folder=os.path.join(UPLOAD_FOLDER,username)
-    if not os.path.exists(user_folder):
-        os.makedirs(user_folder)
+    user_folder = os.path.join(app.config['UPLOAD_FOLDER'], username)
 
-    files=os.listdir(user_folder)
-    return render_template("dashboard.html",files=files,username=username)
+    os.makedirs(user_folder, exist_ok=True)
+
+    files = os.listdir(user_folder) if os.path.exists(user_folder) else []
+
+    return render_template("dashboard.html", files=files, username=username)
+
 
 @app.route("/upload/<username>",methods=["POST"])
 def upload(username):
@@ -81,7 +83,8 @@ def preview(username, filename):
 def search(username):
     query = request.args.get("q", "").lower()
 
-    user_folder = os.path.join(UPLOAD_FOLDER, username)
+    user_folder = os.path.join(app.config['UPLOAD_FOLDER'], username)
+    os.makedirs(user_folder, exist_ok=True)
 
     files = []
     if os.path.exists(user_folder):
