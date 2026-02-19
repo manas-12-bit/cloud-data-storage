@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cloud Storage Upload</title>
+</head>
+
+<body>
+
+<h2>Upload File</h2>
+
+<form action="http://127.0.0.1:5000/upload" method="post" enctype="multipart/form-data">
+
+    <label>Username:</label><br>
+    <input type="text" name="username" required>
+    <br><br>
+
+    <label>Select File:</label><br>
+    <input type="file" name="file" required>
+    <br><br>
+
+    <input type="submit" value="Upload">
+
+</form>
+
+</body>
+</html>
