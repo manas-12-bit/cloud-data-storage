@@ -37,7 +37,8 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
 
 # Create tables AFTER model definition
-with app.app_context():
+@app.before_first_request
+def create_tables():
     db.create_all()
 
 # ================= SHARED LINKS =================
