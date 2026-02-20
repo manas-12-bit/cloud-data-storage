@@ -26,6 +26,8 @@ else:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+db = SQLAlchemy(app)
+
 # ================= MODELS =================
 
 class User(db.Model):
