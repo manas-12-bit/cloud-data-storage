@@ -36,9 +36,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
 
-# Create tables AFTER model definition
-@app.before_first_request
-def create_tables():
+# Create tables safely (Flask 3 compatible)
+with app.app_context():
     db.create_all()
 
 # ================= SHARED LINKS =================
@@ -90,7 +89,6 @@ def upload(username):
     os.makedirs(user_folder, exist_ok=True)
 
     file.save(os.path.join(user_folder, file.filename))
-
     return redirect(url_for("dashboard", username=username))
 
 
