@@ -1,57 +1,49 @@
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Cloud Storage</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
+<!-- NAVBAR -->
 <div class="navbar">
-<h3>☁ Cloud Storage</h3>
-<span>{{username}}</span>
+    <div class="logo">☁ Cloud Storage</div>
+    <div class="user">Welcome, {{ username }}</div>
 </div>
 
-<div class="dashboard">
+<!-- MAIN CONTENT -->
+<div class="container">
 
-<form class="search-box" action="/search/{{username}}" method="get">
-<input type="text" name="q" placeholder="Search files..." required>
-<button>Search</button>
-</form>
+    <!-- SEARCH -->
+    <form action="{{ url_for('search', username=username) }}" method="GET" class="search-box">
+        <input type="text" name="q" placeholder="Search files...">
+        <button type="submit">Search</button>
+    </form>
 
+    <!-- UPLOAD -->
+    <form action="{{ url_for('upload', username=username) }}" method="POST" enctype="multipart/form-data" class="upload-box">
+        <input type="file" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
 
+    <!-- FILE GRID -->
+    <div class="file-grid">
+        {% for file in files %}
+        <div class="file-card">
+            <div class="file-name">{{ file }}</div>
 
-<form class="upload-box" action="/upload/{{username}}" method="post" enctype="multipart/form-data">
-<input type="file" name="file" required>
-<button class="upload-btn">Upload</button>
-</form>
-
-<div id="progress">
-<div id="bar"></div>
-</div>
-
-<div class="files">
-
-{% for f in files %}
-<div class="file-card">
-
-<p class="filename">{{f}}</p>
-
-<div class="actions">
-<a class="btn download" href="/download/{{username}}/{{f}}">Download</a>
-<a class="btn preview" href="/preview/{{username}}/{{f}}">Preview</a>
-<a class="btn delete" href="/delete/{{username}}/{{f}}">Delete</a>
-<a class="btn share" href="/share/{{username}}/{{f}}">Share</a>
-</div>
-
-</div>
-{% endfor %}
+            <div class="file-actions">
+                <a href="{{ url_for('download', username=username, filename=file) }}" class="download">Download</a>
+                <a href="{{ url_for('preview', username=username, filename=file) }}" class="preview">Preview</a>
+                <a href="{{ url_for('delete', username=username, filename=file) }}" class="delete">Delete</a>
+                <a href="{{ url_for('share', username=username, filename=file) }}" class="share">Share</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 
 </div>
 
-</div>
-
-<script>
-document.querySelector("form").onsubmit=function(){
-let bar=document.getElementById("bar");
-let w=0;
-let i=setInterval(()=>{
-if(w>=100) clearInterval(i);
-w+=10;
-bar.style.width=w+"%";
-},150);
-}
-</script>
+</body>
+</html>
