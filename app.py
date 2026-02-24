@@ -37,8 +37,7 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
 
 # Create tables safely (Flask 3 compatible)
-with app.app_context():
-    db.create_all()
+
 
 # ================= SHARED LINKS =================
 
