@@ -20,77 +20,7 @@ body {
     backdrop-filter: blur(6px);
 }
 
-/* ================= LOGIN PAGE ================= */
-
-.login-wrapper {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.login-card {
-    background: white;
-    padding: 45px;
-    width: 420px;
-    border-radius: 20px;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.2);
-}
-
-.login-card h1 {
-    margin-bottom: 5px;
-}
-
-.subtitle {
-    color: #777;
-    margin-bottom: 25px;
-}
-
-.login-card h2 {
-    margin-top: 25px;
-    margin-bottom: 10px;
-}
-
-.login-card input {
-    width: 100%;
-    padding: 13px;
-    margin-bottom: 15px;
-    border-radius: 12px;
-    border: 1px solid #ddd;
-    font-size: 14px;
-    transition: 0.3s;
-}
-
-.login-card input:focus {
-    border-color: #4e73df;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(78,115,223,0.15);
-}
-
-.login-card button {
-    width: 100%;
-    padding: 13px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    background: #4e73df;
-    color: white;
-    transition: 0.3s;
-}
-
-.login-card button:hover {
-    background: #2e59d9;
-    transform: translateY(-2px);
-}
-
-.divider {
-    height: 1px;
-    background: #eee;
-    margin: 30px 0;
-}
-
-/* ================= DASHBOARD ================= */
+/* ================= DASHBOARD CONTAINER ================= */
 
 .container {
     max-width: 1050px;
@@ -101,7 +31,7 @@ body {
     box-shadow: 0 25px 50px rgba(0,0,0,0.15);
 }
 
-/* Search + Upload */
+/* ================= SEARCH + UPLOAD ================= */
 
 .search-box,
 .upload-box {
@@ -152,7 +82,7 @@ body {
     gap: 25px;
 }
 
-/* File Card */
+/* ================= FILE CARD ================= */
 
 .file-card {
     background: #ffffff;
@@ -174,13 +104,15 @@ body {
     font-size: 15px;
 }
 
-/* ================= CLEAN ACTION BUTTONS ================= */
+/* ================= FILE ACTION BUTTONS ================= */
 
 .file-actions {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
 }
+
+/* Base Button */
 
 .file-actions a {
     padding: 8px 14px;
@@ -191,7 +123,7 @@ body {
     transition: all 0.2s ease;
 }
 
-/* Primary (Download) */
+/* Download (Primary Blue) */
 
 .download {
     background: #4e73df;
@@ -202,7 +134,7 @@ body {
     background: #2e59d9;
 }
 
-/* Outline (Preview) */
+/* Preview (Outline Blue) */
 
 .preview {
     border: 1px solid #4e73df;
@@ -215,7 +147,7 @@ body {
     color: white;
 }
 
-/* Subtle Danger (Delete) */
+/* Delete (Soft Red) */
 
 .delete {
     border: 1px solid #e74a3b;
@@ -228,7 +160,7 @@ body {
     color: white;
 }
 
-/* Soft Neutral (Share) */
+/* Make Public / Private */
 
 .share {
     background: #f1f3f5;
@@ -237,6 +169,55 @@ body {
 
 .share:hover {
     background: #e2e6ea;
+}
+
+/* Share Public Button (Green when visible) */
+
+.file-actions a[href*="share"] {
+    background: #1cc88a;
+    color: white;
+}
+
+.file-actions a[href*="share"]:hover {
+    background: #17a673;
+}
+
+/* ================= RENAME SECTION ================= */
+
+.rename-box {
+    margin-top: 14px;
+    display: flex;
+    gap: 8px;
+}
+
+.rename-box input {
+    flex: 1;
+    padding: 9px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.rename-box input:focus {
+    border-color: #4e73df;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(78,115,223,0.15);
+}
+
+.rename-box button {
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: none;
+    background: #4e73df;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.rename-box button:hover {
+    background: #2e59d9;
 }
 
 /* ================= AUTH PAGE ================= */
@@ -300,8 +281,6 @@ body {
     outline: none;
     box-shadow: 0 0 0 3px rgba(255,255,255,0.4);
 }
-
-/* Buttons */
 
 .btn-primary {
     width: 100%;

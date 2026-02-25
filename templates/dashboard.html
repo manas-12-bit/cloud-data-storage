@@ -31,14 +31,46 @@
     <div class="file-grid">
         {% for file in files %}
         <div class="file-card">
-            <div class="file-name">{{ file }}</div>
 
-            <div class="file-actions">
-                <a href="{{ url_for('download', username=username, filename=file) }}" class="download">Download</a>
-                <a href="{{ url_for('preview', username=username, filename=file) }}" class="preview">Preview</a>
-                <a href="{{ url_for('delete', username=username, filename=file) }}" class="delete">Delete</a>
-                <a href="{{ url_for('share', username=username, filename=file) }}" class="share">Share</a>
+            <!-- File Name -->
+            <div class="file-name">
+                {{ file.filename }}
+                {% if file.is_private %}
+                    🔒
+                {% else %}
+                    🌍
+                {% endif %}
             </div>
+
+            <!-- Action Buttons -->
+            <div class="file-actions">
+                <a href="{{ url_for('download', username=username, filename=file.filename) }}" class="download">Download</a>
+                <a href="{{ url_for('preview', username=username, filename=file.filename) }}" class="preview">Preview</a>
+                <a href="{{ url_for('delete', username=username, filename=file.filename) }}" class="delete">Delete</a>
+
+                <!-- Toggle Privacy -->
+                <a href="{{ url_for('toggle_privacy', username=username, file_id=file.id) }}" class="share">
+                    {% if file.is_private %}
+                        Make Public
+                    {% else %}
+                        Make Private
+                    {% endif %}
+                </a>
+
+                <!-- Share Only If Public -->
+                {% if not file.is_private %}
+                <a href="{{ url_for('share', username=username, filename=file.filename) }}" class="share">
+                    Share
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Rename Section -->
+            <form action="{{ url_for('rename_file', username=username, file_id=file.id) }}" method="POST" class="rename-box">
+                <input type="text" name="new_name" placeholder="Rename file..." required>
+                <button type="submit">Rename</button>
+            </form>
+
         </div>
         {% endfor %}
     </div>
