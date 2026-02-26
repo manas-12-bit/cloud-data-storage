@@ -1,29 +1,37 @@
 import os
 import uuid
-from flask import Flask, request, render_template, redirect, url_for, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+
+
+
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 app = Flask(__name__)
 app.secret_key = "secret"
 
-# ================= FILE UPLOAD CONFIG =================
+from dotenv import load_dotenv
+load_dotenv()
 
-UPLOAD_FOLDER = "uploads"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# ================= CLOUDINARY CONFIG =================
+
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+)
 
 # ================= DATABASE CONFIG =================
 
 database_url = os.environ.get("DATABASE_URL")
 
-if database_url:
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
 
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url or "sqlite:///database.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -36,19 +44,16 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
 
-
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(200), nullable=False)
     owner = db.Column(db.String(100), nullable=False)
+    file_url = db.Column(db.String(500), nullable=False)
+    public_id = db.Column(db.String(300), nullable=False)
     is_private = db.Column(db.Boolean, default=True)
 
-
-# 🔥 Create tables (Flask 3 compatible)
 with app.app_context():
     db.create_all()
-
-# ================= SHARED LINKS =================
 
 shared_links = {}
 
@@ -90,6 +95,8 @@ def dashboard(username):
     return render_template("dashboard.html", files=files, username=username)
 
 
+# ================= UPLOAD TO CLOUDINARY =================
+
 @app.route("/upload/<username>", methods=["POST"])
 def upload(username):
     file = request.files["file"]
@@ -97,83 +104,85 @@ def upload(username):
     if not file:
         return redirect(url_for("dashboard", username=username))
 
-    user_folder = os.path.join(app.config["UPLOAD_FOLDER"], username)
-    os.makedirs(user_folder, exist_ok=True)
+    result = cloudinary.uploader.upload(
+    file,
+    folder=username,
+    resource_type="auto"
+)
 
-    file_path = os.path.join(user_folder, file.filename)
-    file.save(file_path)
+    new_file = File(
+        filename=file.filename,
+        owner=username,
+        file_url=result["secure_url"],
+        public_id=result["public_id"],
+        is_private=True
+    )
 
-    new_file = File(filename=file.filename, owner=username, is_private=True)
     db.session.add(new_file)
     db.session.commit()
 
     return redirect(url_for("dashboard", username=username))
 
 
-@app.route("/download/<username>/<filename>")
-def download(username, filename):
-    return send_from_directory(
-        os.path.join(app.config["UPLOAD_FOLDER"], username),
-        filename,
-        as_attachment=True,
-    )
+# ================= DOWNLOAD =================
+
+@app.route("/download/<int:file_id>")
+def download(file_id):
+    file = File.query.get(file_id)
+    return redirect(file.file_url)
 
 
-@app.route("/delete/<username>/<filename>")
-def delete(username, filename):
-    file_record = File.query.filter_by(owner=username, filename=filename).first()
+# ================= DELETE =================
 
-    if file_record:
-        file_path = os.path.join(app.config["UPLOAD_FOLDER"], username, filename)
+@app.route("/delete/<int:file_id>/<username>")
+def delete(file_id, username):
+    file = File.query.get(file_id)
 
-        if os.path.exists(file_path):
-            os.remove(file_path)
-
-        db.session.delete(file_record)
+    if file:
+        cloudinary.uploader.destroy(file.public_id)
+        db.session.delete(file)
         db.session.commit()
 
     return redirect(url_for("dashboard", username=username))
 
 
-@app.route("/preview/<username>/<filename>")
-def preview(username, filename):
-    return send_from_directory(
-        os.path.join(app.config["UPLOAD_FOLDER"], username),
-        filename,
-    )
+# ================= RENAME =================
 
-
-@app.route("/rename/<username>/<int:file_id>", methods=["POST"])
-def rename_file(username, file_id):
+@app.route("/rename/<int:file_id>/<username>", methods=["POST"])
+def rename_file(file_id, username):
     new_name = request.form["new_name"]
+    file = File.query.get(file_id)
 
-    file_record = File.query.get(file_id)
-
-    if not file_record:
-        return redirect(url_for("dashboard", username=username))
-
-    old_path = os.path.join(app.config["UPLOAD_FOLDER"], username, file_record.filename)
-    new_path = os.path.join(app.config["UPLOAD_FOLDER"], username, new_name)
-
-    if os.path.exists(old_path):
-        os.rename(old_path, new_path)
-
-    file_record.filename = new_name
-    db.session.commit()
-
-    return redirect(url_for("dashboard", username=username))
-
-
-@app.route("/toggle/<username>/<int:file_id>")
-def toggle_privacy(username, file_id):
-    file_record = File.query.get(file_id)
-
-    if file_record:
-        file_record.is_private = not file_record.is_private
+    if file:
+        file.filename = new_name
         db.session.commit()
 
     return redirect(url_for("dashboard", username=username))
 
+
+# ================= TOGGLE PRIVATE =================
+
+@app.route("/toggle/<int:file_id>/<username>")
+def toggle_privacy(file_id, username):
+    file = File.query.get(file_id)
+
+    if file:
+        file.is_private = not file.is_private
+        db.session.commit()
+
+    return redirect(url_for("dashboard", username=username))
+
+
+# ================= SHARE =================
+
+@app.route("/share/<int:file_id>")
+def share(file_id):
+    file = File.query.get(file_id)
+
+    if file and not file.is_private:
+        return f"Share Link:<br>{file.file_url}"
+
+    return "File is private"
 
 @app.route("/search/<username>")
 def search(username):
@@ -181,38 +190,13 @@ def search(username):
 
     files = File.query.filter(
         File.owner == username,
-        File.filename.ilike(f"%{query}%"),
+        File.filename.ilike(f"%{query}%")
     ).all()
 
     return render_template("dashboard.html", files=files, username=username)
 
 
-@app.route("/share/<username>/<filename>")
-def share(username, filename):
-    file_record = File.query.filter_by(owner=username, filename=filename).first()
-
-    if file_record and not file_record.is_private:
-        token = str(uuid.uuid4())
-        shared_links[token] = (username, filename)
-        return f"Share Link:<br>https://cloud-data-storage.onrender.com/shared/{token}"
-
-    return "File is private"
-
-
-@app.route("/shared/<token>")
-def shared(token):
-    if token in shared_links:
-        username, filename = shared_links[token]
-        return send_from_directory(
-            os.path.join(app.config["UPLOAD_FOLDER"], username),
-            filename,
-            as_attachment=True,
-        )
-
-    return "Invalid or expired link"
-
-
-# ================= RUN =================
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True)
+
+print(os.environ.get("CLOUDINARY_API_KEY"))

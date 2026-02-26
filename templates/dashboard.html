@@ -44,12 +44,24 @@
 
             <!-- Action Buttons -->
             <div class="file-actions">
-                <a href="{{ url_for('download', username=username, filename=file.filename) }}" class="download">Download</a>
-                <a href="{{ url_for('preview', username=username, filename=file.filename) }}" class="preview">Preview</a>
-                <a href="{{ url_for('delete', username=username, filename=file.filename) }}" class="delete">Delete</a>
+
+                <!-- Download -->
+                <a href="{{ url_for('download', file_id=file.id) }}" class="download">
+                    Download
+                </a>
+
+                <!-- Preview -->
+                <a href="{{ file.file_url }}" target="_blank" class="preview">
+                    Preview
+                </a>
+
+                <!-- Delete -->
+                <a href="{{ url_for('delete', file_id=file.id, username=username) }}" class="delete">
+                    Delete
+                </a>
 
                 <!-- Toggle Privacy -->
-                <a href="{{ url_for('toggle_privacy', username=username, file_id=file.id) }}" class="share">
+                <a href="{{ url_for('toggle_privacy', file_id=file.id, username=username) }}" class="share">
                     {% if file.is_private %}
                         Make Public
                     {% else %}
@@ -57,16 +69,17 @@
                     {% endif %}
                 </a>
 
-                <!-- Share Only If Public -->
+                <!-- Share (only if public) -->
                 {% if not file.is_private %}
-                <a href="{{ url_for('share', username=username, filename=file.filename) }}" class="share">
+                <a href="{{ url_for('share', file_id=file.id) }}" class="share">
                     Share
                 </a>
                 {% endif %}
+
             </div>
 
             <!-- Rename Section -->
-            <form action="{{ url_for('rename_file', username=username, file_id=file.id) }}" method="POST" class="rename-box">
+            <form action="{{ url_for('rename_file', file_id=file.id, username=username) }}" method="POST" class="rename-box">
                 <input type="text" name="new_name" placeholder="Rename file..." required>
                 <button type="submit">Rename</button>
             </form>
