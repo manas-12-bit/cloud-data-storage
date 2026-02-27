@@ -13,8 +13,7 @@ import cloudinary.api
 app = Flask(__name__)
 app.secret_key = "secret"
 
-from dotenv import load_dotenv
-load_dotenv()
+
 
 # ================= CLOUDINARY CONFIG =================
 
