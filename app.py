@@ -199,4 +199,3 @@ def search(username):
 if __name__ == "__main__":
     app.run(debug=True)
 
-print(os.environ.get("CLOUDINARY_API_KEY"))
